@@ -8,7 +8,6 @@
       - gnupg
       - apt-transport-https
       - ca-certificates
-      - curl
       - software-properties-common
     state: present
 - name: Добавление ключей Docker GPG apt
