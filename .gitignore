@@ -1,0 +1,11 @@
+packer/--description
+packer/--labels
+packer/--name
+packer/--network-name
+packer/--range
+packer/--zone
+terraform/.terraform.lock.hcl
+terraform/.terraform/*
+Saves/*
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup

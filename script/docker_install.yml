@@ -1,0 +1,38 @@
+- name: Обновление apt
+  apt:
+    update_cache: yes
+
+- name: Установить зависимостей для Docker
+  apt:
+    name:
+      - gnupg
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+    state: present
+- name: Добавление ключей Docker GPG apt
+  apt_key:
+    url: https://download.docker.com/linux/debian/gpg
+    state: present
+
+- name: Добавление реаозитория 
+  apt_repository:
+    repo: deb https://download.docker.com/linux/debian bullseye stable
+    state: present
+
+- name: Установка пакетов Docker
+  apt: >
+    name={{ item }}
+    state=present
+    update_cache=yes
+  with_items:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+
+- name: Включение демона Docker
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
