@@ -15,7 +15,7 @@
     url: https://download.docker.com/linux/debian/gpg
     state: present
 
-- name: Добавление реаозитория 
+- name: Добавление репозитория 
   apt_repository:
     repo: deb https://download.docker.com/linux/debian bullseye stable
     state: present
