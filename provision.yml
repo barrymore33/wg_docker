@@ -16,7 +16,7 @@
       - name: Установка Docker
         import_tasks: ./script/docker_install.yml
 
-      - name: Запуск Docker
+      - name: Создание Docker контейнера
         block:
             # Источник: https://github.com/wg-easy/wg-easy/pkgs/container/wg-easy
             - name: Удаление прошлого Docker контейнера(если ошибка, то игнорируем)
@@ -30,7 +30,7 @@
                     wgpw {{ PasswordServer }}
               register: pass_hash
 
-            - name: Запуск новый Docker контейнер
+            - name: Запуск нового Docker контейнера
               command: |
                   docker run -d \
                     --name={{ container_name }} \
@@ -46,9 +46,9 @@
                     --restart unless-stopped \
                     {{ container_image }}
 
-      - name: Создание systemd-службы для авто заупска контейнера
+      - name: Создание systemd-службы для авто запуска контейнера
         block:
-            - name: Создание конфигурационного автозапуска Docker
+            - name: Создание конфигурационного файла автозапуска Docker
               copy:
                   dest: "/etc/systemd/system/{{ container_name }}.service"
                   content: |
@@ -79,9 +79,3 @@
 
             - name: Запуск контейнера Docker
               command: "docker start {{ container_name }}"
-
-            - name: Удаляем неиспользуемые образы
-              docker_prune:
-                images: yes
-                images_filters:
-                  dangling: false
