@@ -73,6 +73,9 @@
 
             - name: Запуск контейнера Docker
               command: "docker start {{ container_name }}"
-              
+
             - name: Удаляем неиспользуемые образы
-              command: "docker image prune -a"
+              docker_prune:
+                images: yes
+                images_filters:
+                  dangling: false
