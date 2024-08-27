@@ -9,7 +9,7 @@
         PasswordServer: "{{ PasswordServer }}"
         #
         container_name: wg_easy
-        container_image: weejewel/wg-easy
+        container_image: ghcr.io/wg-easy/wg-easy
     tasks:
       - name: Проверка DNS
         command: host -t A google.com
@@ -19,14 +19,11 @@
 
       - name: Запуск Docker
         block:
-            - name: Остановка прошлого Docker контейнера(если ошибка, то игнорируем)
-              command: "docker container stop {{ container_name }} "
+            - name: Удаление прошлого Docker контейнера(если ошибка, то игнорируем)
+              command: "docker rm -f {{ container_name }}"
               ignore_errors: yes
-
-            - name: Удаляем остановленные контейнеры
-              command: "docker container prune -f"
-
-            # Источник: https://hub.docker.com/r/weejewel/wg-easy
+              
+            # Источник: https://github.com/wg-easy/wg-easy/pkgs/container/wg-easy
             - name: Запуск новый Docker контейнер
               command: |
                   docker run -d \
@@ -76,3 +73,6 @@
 
             - name: Запуск контейнера Docker
               command: "docker start {{ container_name }}"
+              
+            - name: Удаляем неиспользуемые образы
+              command: "docker image prune -a"
