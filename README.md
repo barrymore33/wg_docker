@@ -42,7 +42,7 @@ all:
 Теперь можно выполнить команду для развертывания WireGuard WEB UI сервера с помощью Docker-контейнера:
 
 ```bash
-ansible-playbook -i ./inventory.yml -l WireGuard ./provision.yml -e PasswordServer=990990
+ansible-playbook -i ./inventory.yml ./provision.yml -e PasswordServer=990990
 ```
 
 Здесь `ИмяСервера` - имя вашего сервера, `PasswordServer` - пароль для WEB-версии WireGuard. После успешного выполнения команды, WEB-версия WireGuard будет доступна по URL: `IP_Адрес:51821`. По умолчанию пароль `990990`
