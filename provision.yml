@@ -9,11 +9,11 @@
         container_image: ghcr.io/wg-easy/wg-easy
     tasks:
       - name: Установка Docker
-        import_tasks: ./scripts/docker_install.yml
+        import_tasks: ./scripts/debian_docker_install.yml
 
       - name: Создаем хеш пароль к Docker контейнеру
         block:
-            - name: Создание контейнера 
+            - name: Создание контейнера для хеш пароля
               command: |
                   docker run --rm \
                     {{ container_image }} \
@@ -26,7 +26,7 @@
 
       - name: Запуск Docker Compose
         block:              
-            - name: Создание директории
+            - name: Создание домашней папки
               file:
                 path: "/home/.{{ container_name }}/"
                 owner: root
