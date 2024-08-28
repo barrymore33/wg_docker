@@ -35,6 +35,7 @@
                   docker run -d \
                     --name={{ container_name }} \
                     -e WG_HOST={{ ansible_host }} \
+                    -e LANG=ru \
                     -e {{ pass_hash.stdout }} \
                     -v /home/.{{ container_name }}:/etc/wireguard \
                     -p 51820:51820/udp \
