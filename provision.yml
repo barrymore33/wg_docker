@@ -3,79 +3,45 @@
   - hosts: all
     become: yes
     become_user: root
-    remote_user: root
     vars:
-        # INPUT - Пароль для сервера WireGuard
         PasswordServer: "{{ PasswordServer }}"
-        #
         container_name: wg_easy
         container_image: ghcr.io/wg-easy/wg-easy
     tasks:
-      - name: Проверка DNS
-        command: host -t A google.com
-
       - name: Установка Docker
-        import_tasks: ./script/docker_install.yml
+        import_tasks: ./scripts/docker_install.yml
 
-      - name: Запуск Docker
+      - name: Создаем хеш пароль к Docker контейнеру
         block:
+            - name: Создание контейнера 
+              command: |
+                  docker run --rm \
+                    {{ container_image }} \
+                    wgpw {{ PasswordServer }}
+              register: pass_hash
+
+            - name: Конвертация для Docker Compose файла
+              set_fact:
+                pass_hash: "{{ pass_hash.stdout | replace(\"'\",'') | replace('$', '$$') }}"
+
+      - name: Запуск Docker Compose
+        block:              
+            - name: Создание директории
+              file:
+                path: "/home/.{{ container_name }}/"
+                owner: root
+                group: root
+                mode: 0755
+                state: directory
+
+            - name: Создание Docker Compose файла
+              template:
+                src: scripts/docker-compose.yml.j2
+                dest: /home/.{{ container_name }}/docker-compose.yml
+            
             - name: Удаление прошлого Docker контейнера(если ошибка, то игнорируем)
               command: "docker rm -f {{ container_name }}"
               ignore_errors: yes
-              
-            # Источник: https://github.com/wg-easy/wg-easy/pkgs/container/wg-easy
-            - name: Запуск новый Docker контейнер
-              command: |
-                  docker run -d \
-                    --name={{ container_name }} \
-                    -e WG_HOST={{ ansible_host }} \
-                    -e PASSWORD={{ PasswordServer }} \
-                    -v /home/.{{ container_name }}:/etc/wireguard \
-                    -p 51820:51820/udp \
-                    -p 51821:51821/tcp \
-                    --cap-add=NET_ADMIN \
-                    --cap-add=SYS_MODULE \
-                    --sysctl="net.ipv4.conf.all.src_valid_mark=1" \
-                    --sysctl="net.ipv4.ip_forward=1" \
-                    --restart unless-stopped \
-                    {{ container_image }}
-
-      - name: Создание systemd-службы для авто заупска контейнера
-        block:
-            - name: Создание конфигурационного автозапуска Docker
-              copy:
-                  dest: "/etc/systemd/system/{{ container_name }}.service"
-                  content: |
-                      [Unit]
-                      Description=Docker Container: {{ container_name }}
-                      Requires=docker.service
-                      After=docker.service
-
-                      [Service]
-                      Restart=always
-                      ExecStartPre=/usr/bin/docker pull {{ container_image }}
-                      ExecStart=/usr/bin/docker start -a {{ container_name }}
-                      ExecStop=/usr/bin/docker stop -t 10 {{ container_name }}
-
-                      [Install]
-                      WantedBy=multi-user.target
-
-            - name: Перезапуск systemd
-              systemd:
-                  name: "{{ container_name }}.service"
-                  daemon_reload: yes
-                  state: restarted
-
-            - name: Включение службы в автозапуск
-              systemd:
-                  name: "{{ container_name }}.service"
-                  enabled: yes
-
-            - name: Запуск контейнера Docker
-              command: "docker start {{ container_name }}"
-
-            - name: Удаляем неиспользуемые образы
-              docker_prune:
-                images: yes
-                images_filters:
-                  dangling: false
+            
+            - name: Поднимаем сервис в Docker Compose
+              command: docker-compose -f /home/.{{ container_name }}/docker-compose.yml up -d
