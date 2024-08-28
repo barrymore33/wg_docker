@@ -1,11 +1,10 @@
 ---
 all:
     hosts:
-        WireGuard:
+        ИмяСервера1:
             ansible_host: IP_Адрес
             ansible_user: Пользователь
             # SSH порт
             ansible_port: 22
             # Для этого устанавливали sshpass
             ansible_ssh_pass: Пароль
-            
